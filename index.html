@@ -32,8 +32,8 @@ button{padding:10px 15px;margin-top:10px;cursor:pointer;}
 
 <!-- Admin Login -->
 <h2>Admin Login</h2>
-<input type="text" id="admin" placeholder="admin">
-<input type="password" id="2026583" placeholder="2026583">
+<input type="text" id="username" placeholder="Username">
+<input type="password" id="password" placeholder="Password">
 <button onclick="adminLogin()">Login</button>
 
 <!-- Admin Section -->
@@ -96,16 +96,14 @@ button{padding:10px 15px;margin-top:10px;cursor:pointer;}
     const user = document.getElementById('username').value;
     const pass = document.getElementById('password').value;
 
-    db.collection("admins").where("username","==",user)
-                           .where("password","==",pass)
-                           .get().then(snapshot=>{
-      if(snapshot.empty){ alert("Invalid Credentials"); return; }
-      else {
-        document.getElementById('adminSection').style.display="block";
-        alert("Login Successful");
-        loadAdminPanel();
-      }
-    });
+    // Fixed credentials: username: tarikul, password: 2026583
+    if(user === "tarikul" && pass === "2026583"){
+      document.getElementById('adminSection').style.display="block";
+      alert("Login Successful");
+      loadAdminPanel();
+    } else {
+      alert("Invalid Credentials");
+    }
   }
 
   function logoutAdmin(){
@@ -168,7 +166,4 @@ button{padding:10px 15px;margin-top:10px;cursor:pointer;}
 </script>
 
 </body>
-
 </html>
-
-
