@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>বাটপার ধরুন - Home</title>
+<link rel="stylesheet" href="style.css">
+<script src="script.js" defer></script>
+</head>
+<body>
+<div class="container">
+  <h1>আপনার সাথে প্রতারণা হয়েছে?</h1>
+
+  <!-- Search -->
+  <div class="card">
+    <h2>মোবাইল নম্বর দিয়ে সার্চ করুন</h2>
+    <input type="text" id="searchMobile" placeholder="মোবাইল নম্বর">
+    <button class="btn-green" onclick="searchComplaints()">সার্চ</button>
+    <div id="searchResults"></div>
+  </div>
+
+  <!-- Submit Complaint -->
+  <div class="card">
+    <h2>অভিযোগ জমা দিন</h2>
+    <input type="text" id="cName" placeholder="নাম">
+    <input type="text" id="cMobile" placeholder="মোবাইল নম্বর">
+    <input type="text" id="cFraud" placeholder="প্রতারণার ধরন">
+    <input type="text" id="cTransaction" placeholder="Transaction / Amount">
+    <button class="btn-green" onclick="submitComplaint()">সাবমিট করুন</button>
+  </div>
+
+  <!-- Approved Complaints -->
+  <div class="card">
+    <h2>বাটপার দেখুন</h2>
+    <div id="posts"></div>
+  </div>
+</div>
+</body>
+</html>

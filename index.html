@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>বাটপার ধরুন - Login/Register</title>
+<link rel="stylesheet" href="style.css">
+<script src="script.js" defer></script>
+</head>
+<body>
+<div class="container" id="loginSection">
+  <h1>লগইন করুন</h1>
+  <input type="text" id="loginMobile" placeholder="মোবাইল নম্বর (+8801XXXXXXXXX)">
+  <input type="password" id="loginPass" placeholder="পাসওয়ার্ড">
+  <button class="btn-red" onclick="loginUser()">লগইন</button>
+  <p class="link" onclick="showRegister()">আইডি তৈরী করুন</p>
+  <p class="link">পাসওয়ার্ড ভুলে গেছেন? Admin: 01830090583</p>
+</div>
+
+<div class="container" id="registerSection" style="display:none;">
+  <h1>আইডি তৈরী করুন</h1>
+  <input type="text" id="regName" placeholder="আপনার নাম">
+  <input type="text" id="regMobile" placeholder="মোবাইল নম্বর (+8801XXXXXXXXX)">
+  <input type="password" id="regPass" placeholder="পাসওয়ার্ড">
+  <button class="btn-green" onclick="registerUser()">রেজিস্টার করুন</button>
+  <p class="link" onclick="showLogin()">লগইন করুন</p>
+</div>
+</body>
+</html>
