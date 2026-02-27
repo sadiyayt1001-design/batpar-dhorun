@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>বাটপার ধরুন</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@400;600;700&display=swap" rel="stylesheet">
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Noto Sans Bengali',sans-serif;}
+
+body{
+background:#f4f6f9;
+color:#333;
+}
+
+.container{
+max-width:500px;
+margin:auto;
+padding:15px;
+}
+
+h1,h2{
+text-align:center;
+margin-bottom:15px;
+font-weight:700;
+color:#2e7d32;
+}
+
+input,textarea{
+width:100%;
+padding:12px;
+margin:6px 0;
+border-radius:8px;
+border:1px solid #ddd;
+font-size:15px;
+outline:none;
+transition:0.3s;
+}
+
+input:focus,textarea:focus{
+border-color:#4caf50;
+box-shadow:0 0 5px rgba(76,175,80,0.3);
+}
+
+button{
+padding:12px;
+margin-top:8px;
+width:100%;
+border:none;
+border-radius:8px;
+font-weight:600;
+cursor:pointer;
+transition:0.3s;
+font-size:15px;
+}
+
+.btn-primary{
+background:#4caf50;
+color:white;
+}
+
+.btn-primary:hover{
+background:#43a047;
+}
+
+.btn-danger{
+background:#f44336;
+color:white;
+}
+
+.btn-danger:hover{
+background:#e53935;
+}
+
+.card{
+background:white;
+padding:18px;
+border-radius:12px;
+margin-bottom:15px;
+box-shadow:0 4px 15px rgba(0,0,0,0.08);
+}
+
+.link{
+text-align:center;
+margin-top:10px;
+color:#2e7d32;
+cursor:pointer;
+font-size:14px;
+}
+
+.postCard{
+background:white;
+padding:15px;
+margin-top:10px;
+border-radius:12px;
+box-shadow:0 2px 10px rgba(0,0,0,0.1);
+}
+
+.postCard img{
+width:100%;
+border-radius:10px;
+margin-top:8px;
+}
+
+.actions{
+display:flex;
+gap:5px;
+margin-top:10px;
+}
+
+.actions button{
+flex:1;
+font-size:13px;
+padding:8px;
+}
+
+.dashboard{
+display:flex;
+justify-content:space-between;
+margin-bottom:15px;
+gap:8px;
+}
+
+.statBox{
+flex:1;
+background:#e8f5e9;
+padding:10px;
+border-radius:10px;
+text-align:center;
+font-weight:600;
+font-size:13px;
+}
+
+.hidden{display:none;}
+
+.topBar{
+background:white;
+padding:12px;
+text-align:center;
+font-weight:700;
+font-size:18px;
+box-shadow:0 2px 8px rgba(0,0,0,0.08);
+margin-bottom:15px;
+}
+</style>
+</head>
+<body>
+
+<div class="topBar">বাটপার ধরুন</div>
+
+<!-- LOGIN -->
+<div class="container" id="loginSection">
+<div class="card">
+<h2>লগইন করুন</h2>
+<input type="text" id="loginMobile" placeholder="মোবাইল নম্বর">
+<input type="password" id="loginPass" placeholder="পাসওয়ার্ড">
+<button class="btn-primary" onclick="loginUser()">লগইন করুন</button>
+<p class="link" onclick="showRegister()">আইডি তৈরি করুন</p>
+</div>
+</div>
+
+<!-- REGISTER -->
+<div class="container hidden" id="registerSection">
+<div class="card">
+<h2>রেজিস্টার করুন</h2>
+<input type="text" id="regName" placeholder="আপনার নাম">
+<input type="text" id="regMobile" placeholder="মোবাইল নম্বর">
+<input type="text" id="regAddress" placeholder="ঠিকানা">
+<input type="password" id="regPass" placeholder="পাসওয়ার্ড">
+<button class="btn-primary" onclick="registerUser()">রেজিস্টার</button>
+<p class="link" onclick="showLogin()">লগইন করুন</p>
+</div>
+</div>
+
+<!-- HOME -->
+<div class="container hidden" id="homeSection">
+
+<div class="card">
+<h2>মোবাইল দিয়ে সার্চ করুন</h2>
+<input type="text" id="searchMobile" placeholder="মোবাইল নম্বর লিখুন">
+<button class="btn-primary">সার্চ</button>
+</div>
+
+<div class="card">
+<h2>অভিযোগ জমা দিন</h2>
+<input placeholder="নাম">
+<input placeholder="মোবাইল নম্বর">
+<input placeholder="প্রতারণার ধরন">
+<input placeholder="টাকার পরিমাণ">
+<textarea placeholder="বিস্তারিত লিখুন"></textarea>
+<input type="file" multiple>
+<button class="btn-primary">সাবমিট করুন</button>
+</div>
+
+<div class="card">
+<h2>এপ্রুভড তালিকা</h2>
+<div class="postCard">
+<b>নাম:</b> Rahim<br>
+<b>মোবাইল:</b> 017XXXXXXX<br>
+<b>প্রতারণা:</b> Online Scam<br>
+<b>টাকা:</b> 20,000<br>
+<div class="actions">
+<button class="btn-primary">👍 10</button>
+<button class="btn-danger">👎 2</button>
+</div>
+</div>
+</div>
+
+<button class="btn-danger" onclick="showAdmin()">Admin Panel</button>
+
+</div>
+
+<!-- ADMIN -->
+<div class="container hidden" id="adminSection">
+
+<h2>Admin Dashboard</h2>
+
+<div class="dashboard">
+<div class="statBox">Users<br>120</div>
+<div class="statBox">Pending<br>5</div>
+<div class="statBox">Approved<br>25</div>
+</div>
+
+<div class="card">
+<h2>Pending Complaints</h2>
+<div class="postCard">
+Rahim - 017XXXXXX<br>
+Fraud: Bkash Scam<br>
+Amount: 15000<br>
+<div class="actions">
+<button class="btn-primary">Approve</button>
+<button class="btn-danger">Reject</button>
+</div>
+</div>
+</div>
+
+<button class="btn-danger" onclick="logoutAdmin()">Logout</button>
+
+</div>
+
+<script>
+function showRegister(){
+document.getElementById('loginSection').classList.add('hidden');
+document.getElementById('registerSection').classList.remove('hidden');
+}
+function showLogin(){
+document.getElementById('registerSection').classList.add('hidden');
+document.getElementById('loginSection').classList.remove('hidden');
+}
+function showAdmin(){
+let u=prompt("Admin Username");
+let p=prompt("Admin Password");
+if(u=="tarikul" && p=="2026583"){
+document.getElementById('homeSection').classList.add('hidden');
+document.getElementById('adminSection').classList.remove('hidden');
+}else{
+alert("Invalid Admin");
+}
+}
+function logoutAdmin(){
+document.getElementById('adminSection').classList.add('hidden');
+document.getElementById('homeSection').classList.remove('hidden');
+}
+function loginUser(){
+alert("Demo Login Success");
+document.getElementById('loginSection').classList.add('hidden');
+document.getElementById('homeSection').classList.remove('hidden');
+}
+function registerUser(){
+alert("Registration Success");
+showLogin();
+}
+</script>
+
+</body>
+</html>
