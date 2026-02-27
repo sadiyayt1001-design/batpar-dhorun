@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>বাটপার ধরুন</title>
+<style>
+/* Common Styles */
+body{margin:0;padding:0;font-family:sans-serif;background:#e8f5e9;color:#212121;}
+.container{max-width:450px;margin:auto;padding:15px;}
+h1,h2{text-align:center;}
+input,textarea{width:100%;padding:10px;margin:5px 0;border-radius:8px;border:1px solid #ccc;}
+button{padding:10px;margin:5px 0;width:100%;border:none;border-radius:8px;color:#fff;font-weight:bold;cursor:pointer;}
+.btn-red{background:#f44336;}
+.btn-green{background:#4caf50;}
+.link{text-align:center;color:#2e7d32;cursor:pointer;margin-top:5px;}
+.card{background:#fff;padding:15px;border-radius:10px;margin-bottom:15px;box-shadow:0 2px 5px rgba(0,0,0,0.2);}
+.postCard{border:1px solid #ccc;padding:10px;margin-top:10px;border-radius:10px;}
+.commentDiv{border-top:1px dotted #aaa;padding:5px;margin:3px 0;}
+.actions{display:flex;justify-content:space-between;margin-top:10px;}
+</style>
+
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-storage-compat.js"></script>
+
+<script>
+// Firebase Config
+const firebaseConfig = {
+  apiKey: "AIzaSyAIkxqhWez_3WzHwAVi3gzX5pS8oIWeQ9g",
+  authDomain: "batpar-dhorun.firebaseapp.com",
+  projectId: "batpar-dhorun",
+  storageBucket: "batpar-dhorun.appspot.com",
+  messagingSenderId: "301385643343",
+  appId: "1:301385643343:web:dd79b7e751662e5620c13a",
+  measurementId: "G-74H5JEMPN5"
+};
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+const storage = firebase.storage();
+
+// Current User
+let currentUserId=null;
+let currentUserName="";
+
+// Helper
+function isBangladeshiNumber(number){
+    return /^(?:\+?88)?01[3-9]\d{8}$/.test(number);
+}
+</script>
+</head>
+<body>
+
+<!-- Login / Register Section -->
+<div class="container" id="loginSection">
+<h1>লগইন করুন</h1>
+<input type="text" id="loginMobile" placeholder="মোবাইল নম্বর (+8801XXXXXXXXX)">
+<input type="password" id="loginPass" placeholder="পাসওয়ার্ড">
+<button class="btn-red" onclick="loginUser()">লগইন</button>
+<p class="link" onclick="showRegister()">আইডি তৈরী করুন</p>
+<p class="link">পাসওয়ার্ড ভুলে গেছেন? Admin: 01830090583</p>
+</div>
+
+<div class="container" id="registerSection" style="display:none;">
+<h1>আইডি তৈরী করুন</h1>
+<input type="text" id="regName" placeholder="আপনার নাম">
+<input type="text" id="regMobile" placeholder="মোবাইল নম্বর (+8801XXXXXXXXX)">
+<input type="password" id="regPass" placeholder="পাসওয়ার্ড">
+<button class="btn-green" onclick="registerUser()">রেজিস্টার করুন</button>
+<p class="link" onclick="showLogin()">লগইন করুন</p>
+</div>
+
+<!-- Home Section -->
+<div class="container" id="homeSection" style="display:none;">
+<h1>আপনার সাথে প্রতারণা হয়েছে?</h1>
+
+<!-- Search -->
+<div class="card">
+<h2>মোবাইল নম্বর দিয়ে সার্চ করুন</h2>
+<input type="text" id="searchMobile" placeholder="মোবাইল নম্বর">
+<button class="btn-green" onclick="searchComplaints()">সার্চ</button>
+<div id="searchResults"></div>
+</div>
+
+<!-- Submit Complaint -->
+<div class="card">
+<h2>অভিযোগ জমা দিন</h2>
+<input type="text" id="cName" placeholder="নাম">
+<input type="text" id="cMobile" placeholder="মোবাইল নম্বর">
+<input type="text" id="cFraud" placeholder="প্রতারণার ধরন">
+<input type="text" id="cTransaction" placeholder="Transaction / Amount">
+<input type="file" id="cScreenshot">
+<button class="btn-green" onclick="submitComplaint()">সাবমিট করুন</button>
+</div>
+
+<!-- Approved Complaints -->
+<div class="card">
+<h2>বাটপার দেখুন</h2>
+<div id="posts"></div>
+</div>
+</div>
+
+<!-- Admin Section -->
+<div class="container" id="adminSection" style="display:none;">
+<h1>Admin Panel</h1>
+<div id="adminPanel"></div>
+<button class="btn-red" onclick="logoutAdmin()">Logout</button>
+</div>
+
+<script>
+// UI toggles
+function showRegister(){document.getElementById('loginSection').style.display='none';document.getElementById('registerSection').style.display='block';}
+function showLogin(){document.getElementById('registerSection').style.display='none';document.getElementById('loginSection').style.display='block';}
+
+// Register
+function registerUser(){
+  const name=document.getElementById('regName').value;
+  const mobile=document.getElementById('regMobile').value;
+  const pass=document.getElementById('regPass').value;
+  if(!name || !mobile || !pass){alert("সব তথ্য দিন"); return;}
+  if(!isBangladeshiNumber(mobile)){alert("বাংলাদেশী মোবাইল নম্বর দিন"); return;}
+  auth.createUserWithEmailAndPassword(mobile+"@batpar.com", pass)
+    .then(cred=>{
+      db.collection('users').doc(cred.user.uid).set({name:name,mobile:mobile});
+      alert("Registration Success!"); loginUser(mobile,pass);
+    }).catch(err=>alert(err.message));
+}
+
+// Login
+function loginUser(mobileInput,passInput){
+  const mobile=mobileInput || document.getElementById('loginMobile').value;
+  const pass=passInput || document.getElementById('loginPass').value;
+  if(!isBangladeshiNumber(mobile)){alert("বাংলাদেশী নম্বর দিন"); return;}
+  auth.signInWithEmailAndPassword(mobile+"@batpar.com",pass)
+    .then(cred=>{
+      currentUserId=cred.user.uid;
+      db.collection('users').doc(currentUserId).get().then(doc=>{currentUserName=doc.data().name;});
+      document.getElementById('loginSection').style.display='none';
+      document.getElementById('registerSection').style.display='none';
+      document.getElementById('homeSection').style.display='block';
+      loadAllPosts();
+    }).catch(err=>alert(err.message));
+}
+
+// Logout Admin
+function logoutAdmin(){document.getElementById('adminSection').style.display='none';document.getElementById('loginSection').style.display='block';}
+
+// Submit Complaint
+async function submitComplaint(){
+  const name=document.getElementById('cName').value;
+  const mobile=document.getElementById('cMobile').value;
+  const fraud=document.getElementById('cFraud').value;
+  const transaction=document.getElementById('cTransaction').value;
+  const file=document.getElementById('cScreenshot').files[0];
+  if(!name||!mobile||!fraud){alert("Name, Mobile, Fraud required"); return;}
+  let fileURL="";
+  if(file){
+    const storageRef=storage.ref("screenshots/"+Date.now()+"_"+file.name);
+    await storageRef.put(file);
+    fileURL=await storageRef.getDownloadURL();
+  }
+  db.collection("complaints").add({name,mobile,fraud_type:fraud,transaction,screenshot:fileURL,status:"pending",date:new Date()})
+  .then(()=>alert("Complaint Submitted! Waiting Admin Approval"));
+}
+
+// Search Complaints
+function searchComplaints(){
+  const mob=document.getElementById('searchMobile').value;
+  db.collection("complaints").where("mobile","==",mob).where("status","==","approved").get()
+  .then(snapshot=>{
+    const div=document.getElementById('searchResults');
+    div.innerHTML="";
+    if(snapshot.empty){div.innerHTML="কোনও অভিযোগ পাওয়া যায়নি";return;}
+    snapshot.forEach(doc=>{
+      const data=doc.data();
+      const p=document.createElement('div');
+      p.className='postCard';
+      p.innerHTML=`<b>${data.name}</b> (${data.mobile})<br>Fraud: ${data.fraud_type}<br>Transaction: ${data.transaction}<br>${data.screenshot?`<img src="${data.screenshot}" style="max-width:100%;border-radius:8px;">`:''}`;
+      div.appendChild(p);
+    });
+  });
+}
+
+// Load All Posts + Likes/Dislikes
+function loadAllPosts(){
+  db.collection("complaints").where("status","==","approved").orderBy("date","desc")
+  .onSnapshot(snapshot=>{
+    const postsDiv=document.getElementById('posts');
+    postsDiv.innerHTML="";
+    snapshot.forEach(doc=>{
+      const data=doc.data();
+      const div=document.createElement('div'); div.className='postCard';
+      div.innerHTML=`<b>${data.name}</b> (${data.mobile})<br>
+      Fraud: ${data.fraud_type}<br>
+      Transaction: ${data.transaction}<br>
+      ${data.screenshot?`<img src="${data.screenshot}" style="max-width:100%;border-radius:8px;">`:''}
+      <div class="actions">
+        <button class="btn-red" onclick="reactPost('${doc.id}','dislike')">Dislike</button>
+        <button class="btn-green" onclick="reactPost('${doc.id}','like')">Like</button>
+        <span id="count_${doc.id}">👍0 | 👎0</span>
+      </div>
+      <input type="text" id="comment_${doc.id}" placeholder="Comment">
+      <button onclick="commentPost('${doc.id}')">Comment</button>
+      <div id="comments_${doc.id}"></div>`;
+      postsDiv.appendChild(div);
+      updatePostCounts(doc.id);
+      loadComments(doc.id);
+    });
+  });
+}
+
+// Like/Dislike
+function reactPost(postId,type){
+  if(!currentUserId){alert("Login First"); return;}
+  db.collection('postInteractions').doc(postId+'_'+currentUserId).set({postId,userId:currentUserId,type},{merge:true})
+  .then(()=>updatePostCounts(postId));
+}
+function updatePostCounts(postId){
+  db.collection('postInteractions').where('postId','==',postId).get().then(snapshot=>{
+    let likes=0,dislikes=0;
+    snapshot.forEach(doc=>{if(doc.data().type==="like") likes++; else if(doc.data().type==="dislike") dislikes++;});
+    document.getElementById('count_'+postId).innerText=`👍${likes} | 👎${dislikes}`;
+  });
+}
+
+// Comments
+function commentPost(postId){
+  const text=document.getElementById('comment_'+postId).value;
+  if(!text || !currentUserId) return;
+  db.collection('comments').add({postId,userId:currentUserId,username:currentUserName,commentText:text,timestamp:new Date()})
+  .then(()=>{document.getElementById('comment_'+postId).value="";loadComments(postId);});
+}
+function loadComments(postId){
+  db.collection('comments').where('postId','==',postId).orderBy('timestamp','asc').get()
+  .then(snapshot=>{
+    const cDiv=document.getElementById('comments_'+postId);
+    cDiv.innerHTML="";
+    snapshot.forEach(doc=>{
+      const c=doc.data();
+      cDiv.innerHTML+=`<div class="commentDiv"><b>${c.username}:</b> ${c.commentText}</div>`;
+    });
+  });
+}
+
+// Admin Login
+function adminLogin(){
+  const user=prompt("Admin Username");
+  const pass=prompt("Admin Password");
+  if(user==="tarikul" && pass==="2026583"){document.getElementById('adminSection').style.display='block';document.getElementById('homeSection').style.display='none';loadAdminPanel();}
+  else alert("Invalid Admin Credentials");
+}
+function loadAdminPanel(){
+  db.collection("complaints").where("status","==","pending").onSnapshot(snapshot=>{
+    const panel=document.getElementById('adminPanel'); panel.innerHTML="";
+    snapshot.forEach(doc=>{
+      const data=doc.data();
+      const div=document.createElement('div'); div.className="postCard";
+      div.innerHTML=`<b>${data.name}</b> (${data.mobile})<br>Fraud: ${data.fraud_type}<br>Transaction: ${data.transaction}<br>
+      ${data.screenshot?`<a href="${data.screenshot}" target="_blank">View Screenshot</a><br>`:''}
+      <button class="btn-green" onclick="approveComplaint('${doc.id}')">Approve</button>
+      <button class="btn-red" onclick="rejectComplaint('${doc.id}')">Reject</button>`;
+      panel.appendChild(div);
+    });
+  });
+}
+function approveComplaint(id){db.collection("complaints").doc(id).update({status:"approved"});}
+function rejectComplaint(id){db.collection("complaints").doc(id).delete();}
+</script>
+</body>
+</html>
