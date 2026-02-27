@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Batpar Dhorun</title>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<style>
+body{font-family:sans-serif;margin:20px;}
+input, textarea{width:100%;padding:8px;margin:5px 0;}
+button{padding:10px 15px;margin-top:10px;cursor:pointer;}
+#complaintList div, #adminPanel div{border:1px solid #ccc;padding:10px;margin:5px 0;}
+#adminSection{display:none;border:1px solid #000;padding:10px;margin-top:20px;}
+</style>
+</head>
+<body>
+
+<h1>Batpar Dhorun</h1>
+
+<!-- Visitor Submit Form -->
+<h2>Submit Complaint</h2>
+<input type="text" id="name" placeholder="Name">
+<input type="text" id="mobile" placeholder="Mobile Number">
+<input type="text" id="address" placeholder="Address (optional)">
+<input type="text" id="fraud_type" placeholder="Fraud Type">
+<input type="text" id="transaction" placeholder="Transaction Method">
+<input type="text" id="proof_link" placeholder="Proof Screenshot Link (Google Drive/Imgur)">
+<button onclick="submitComplaint()">Submit Complaint</button>
+
+<hr>
+
+<!-- Admin Login -->
+<h2>Admin Login</h2>
+<input type="text" id="username" placeholder="Username">
+<input type="password" id="password" placeholder="Password">
+<button onclick="adminLogin()">Login</button>
+
+<!-- Admin Section -->
+<div id="adminSection">
+  <h2>Admin Panel (Pending Complaints)</h2>
+  <div id="adminPanel"></div>
+  <button onclick="logoutAdmin()">Logout</button>
+</div>
+
+<hr>
+
+<!-- Public Search -->
+<h2>Search Complaint by Mobile</h2>
+<input type="text" id="searchMobile" placeholder="Enter Mobile Number">
+<button onclick="searchComplaint()">Search</button>
+<div id="complaintList"></div>
+
+<script>
+  // ---------------- Firebase Config ----------------
+  // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+  const firebaseConfig = {
+    apiKey: "AIzaSyAIkxqhWez_3WzHwAVi3gzX5pS8oIWeQ9g",
+    authDomain: "batpar-dhorun.firebaseapp.com",
+    projectId: "batpar-dhorun",
+    storageBucket: "batpar-dhorun.firebasestorage.app",
+    messagingSenderId: "301385643343",
+    appId: "1:301385643343:web:dd79b7e751662e5620c13a",
+    measurementId: "G-74H5JEMPN5"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+
+  // ---------------- Visitor Submit Complaint ----------------
+  function submitComplaint(){
+    const name = document.getElementById('name').value;
+    const mobile = document.getElementById('mobile').value;
+    const address = document.getElementById('address').value;
+    const fraud_type = document.getElementById('fraud_type').value;
+    const transaction = document.getElementById('transaction').value;
+    const proof_link = document.getElementById('proof_link').value;
+
+    if(!name || !mobile || !fraud_type){ alert("Name, Mobile and Fraud Type are required"); return; }
+
+    db.collection("complaints").add({
+      name, mobile, address, fraud_type, transaction,
+      proof_link, status:"pending", date: new Date()
+    }).then(()=>{
+      alert("Complaint Submitted! Waiting for Admin Approval");
+      document.getElementById('name').value="";
+      document.getElementById('mobile').value="";
+      document.getElementById('address').value="";
+      document.getElementById('fraud_type').value="";
+      document.getElementById('transaction').value="";
+      document.getElementById('proof_link').value="";
+    });
+  }
+
+  // ---------------- Admin Login ----------------
+  function adminLogin(){
+    const user = document.getElementById('username').value;
+    const pass = document.getElementById('password').value;
+
+    db.collection("admins").where("username","==",user)
+                           .where("password","==",pass)
+                           .get().then(snapshot=>{
+      if(snapshot.empty){ alert("Invalid Credentials"); return; }
+      else {
+        document.getElementById('adminSection').style.display="block";
+        alert("Login Successful");
+        loadAdminPanel();
+      }
+    });
+  }
+
+  function logoutAdmin(){
+    document.getElementById('adminSection').style.display="none";
+    document.getElementById('username').value="";
+    document.getElementById('password').value="";
+  }
+
+  // ---------------- Admin Panel ----------------
+  function loadAdminPanel(){
+    db.collection("complaints").where("status","==","pending").onSnapshot((snapshot)=>{
+      const panel = document.getElementById('adminPanel');
+      panel.innerHTML="";
+      snapshot.forEach(doc=>{
+        const data = doc.data();
+        const div = document.createElement('div');
+        div.innerHTML = `
+          <b>${data.name}</b> (${data.mobile})<br>
+          Fraud: ${data.fraud_type} | Transaction: ${data.transaction}<br>
+          Proof: <a href="${data.proof_link}" target="_blank">Link</a><br>
+          <button onclick="approveComplaint('${doc.id}')">Approve</button>
+          <button onclick="rejectComplaint('${doc.id}')">Reject</button>
+        `;
+        panel.appendChild(div);
+      });
+    });
+  }
+
+  function approveComplaint(id){
+    db.collection("complaints").doc(id).update({status:"approved"});
+  }
+
+  function rejectComplaint(id){
+    db.collection("complaints").doc(id).delete();
+  }
+
+  // ---------------- Public Search ----------------
+  function searchComplaint(){
+    const mobile = document.getElementById('searchMobile').value;
+    if(!mobile) return alert("Enter Mobile Number");
+    const list = document.getElementById('complaintList');
+    list.innerHTML="";
+    db.collection("complaints").where("mobile","==",mobile)
+                                .where("status","==","approved")
+                                .get().then(snapshot=>{
+      if(snapshot.empty){ list.innerHTML="No record found"; return; }
+      snapshot.forEach(doc=>{
+        const data = doc.data();
+        const div = document.createElement('div');
+        div.innerHTML = `
+          <b>${data.name}</b> (${data.mobile})<br>
+          Fraud: ${data.fraud_type} | Transaction: ${data.transaction}<br>
+          Proof: <a href="${data.proof_link}" target="_blank">Link</a><br>
+          Address: ${data.address}
+        `;
+        list.appendChild(div);
+      });
+    });
+  }
+</script>
+
+</body>
+</html>
